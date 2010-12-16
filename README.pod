@@ -4,37 +4,29 @@ Plack/PSGI framework JFF (Just For Fun!).
 
 Three reasons why I wrote it:
 
-=over 4
+=head2 Everybody does it
 
-=item Everybody does it
+=head2 It is easy
 
-=item It is easy
-
-=item It is fun
-
-=back
+=head2 It is fun
 
 =head1 Features
 
-=over 4
+=head2 Heavy use of L<Plack> internals, no wheel reinventing
 
-=item Heavy use of L<Plack> internals, no wheel reinventing
+=head2 Reasonable dependencies
 
-=item Reasonable dependencies
+=head2 OOP approach with no hacking
 
-=item OOP approach with no hacking
+=head2 Cool name
 
-=item Cool name
-
-=back
-
-=head2 Warning
+=head1 Warning
 
 I don't expect anyone to use it. But it could be another example how to use
 L<Plack>/L<PSGI> and build your own framework with the only features that you
 need.
 
-=head2 Usage
+=head1 Usage
 
 Create your app:
 
@@ -72,4 +64,4 @@ Create a C<my_app.psgi> file:
 
 Run it:
 
-    plackup my_app.pgi
+    plackup my_app.psgi
