@@ -1,0 +1,75 @@
+=head1 Boogie Woogie
+
+Plack/PSGI framework JFF (Just For Fun!).
+
+Three reasons why I wrote it:
+
+=over 4
+
+=item Everybody does it
+
+=item It is easy
+
+=item It is fun
+
+=back
+
+=head1 Features
+
+=over 4
+
+=item Heavy use of L<Plack> internals, no wheel reinventing
+
+=item Reasonable dependencies
+
+=item OOP approach with no hacking
+
+=item Cool name
+
+=back
+
+=head2 Warning
+
+I don't expect anyone to use it. But it could be another example how to use
+L<Plack>/L<PSGI> and build your own framework with the only features that you
+need.
+
+=head2 Usage
+
+Create your app:
+
+    package MyApp;
+    use Boose;
+
+    extends 'BoogieWoogie';
+
+    sub startup {
+        my $self = shift;
+
+        my $r = $self->dispatcher->router;
+        $r->add_route('/', defaults => 'foo#bar');
+    }
+
+    1;
+
+Create a C<my_app.psgi> file:
+
+    use Plack::Builder;
+
+    use MyApp;
+
+    my $app = MyApp->new;
+
+    builder {
+        enable "Plack::Middleware::Static",
+          path => qr{\A/favicon.ico\z},
+          root => 'htdocs/';
+
+        enable "SimpleLogger", level => "debug";
+
+        $app;
+    };
+
+Run it:
+
+    plackup my_app.pgi
