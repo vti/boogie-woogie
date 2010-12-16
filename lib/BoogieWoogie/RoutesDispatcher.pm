@@ -27,13 +27,10 @@ sub dispatch {
         die "Don't know how to handle *this* yet, just die"
           unless defined $controller && defined $action;
 
-        return unless $self->_is_action_valid($action);
-
         $controller = $self->_create_controller($controller);
-
         return unless defined $controller;
 
-        if (!$controller->can($action)) {
+        if (!$controller->action_exists($action)) {
             $self->log->warn(
                     "No action '$action' found within a controller '"
                   . ref($controller)
@@ -41,7 +38,7 @@ sub dispatch {
             return;
         }
 
-        $controller->bar;
+        $controller->call_action($action);
 
         my $output =
             $controller->is_rendered
@@ -52,17 +49,6 @@ sub dispatch {
     }
 
     return;
-}
-
-sub _is_action_valid {
-    my $self   = shift;
-    my $action = shift;
-
-    if ($action !~ m/\A [a-z][\w_]+/xms) {
-        $self->log->warn("Action '$action' is not valid");
-    }
-
-    return 1;
 }
 
 sub _create_controller {

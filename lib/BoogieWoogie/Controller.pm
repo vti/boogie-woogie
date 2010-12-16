@@ -1,20 +1,21 @@
 package BoogieWoogie::Controller;
-use Boose;
 
-extends 'Boose::Base';
+use strict;
+use warnings;
 
-has 'app';
-has 'is_rendered';
-has 'output';
+use base 'Boose';
 
-sub render {
-    my $self = shift;
+use Boose::Util qw(install_sub);
 
-    $self->set_is_rendered(1);
+sub import_finalize {
+    my $class = shift;
+    my ($package) = @_;
 
-    my $output = $self->renderer->render(@_);
+    $class->SUPER::import_finalize(@_);
 
-    $self->set_output($output);
+    install_sub($package => action => \&action);
 }
+
+sub action { caller->add_action(@_) }
 
 1;
