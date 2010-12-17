@@ -38,14 +38,20 @@ sub dispatch {
             return;
         }
 
+        my $res = $req->new_response;
+
+        $controller->set_req($req);
+        $controller->set_res($res);
+
         $controller->call_action($action);
 
-        my $output =
-            $controller->is_rendered
-          ? $controller->output
-          : $self->renderer->render;
+        if (!$controller->is_rendered) {
+            my $output = $self->renderer->render;
+            $res->status(200);
+            $res->body($output);
+        }
 
-        return $output;
+        return $res;
     }
 
     return;
@@ -54,6 +60,7 @@ sub dispatch {
 sub _create_controller {
     my $self = shift;
     my $name = shift;
+    my ($req, $res) = @_;
 
     my $namespace = ref $self->app;
     $name = camelize($name);

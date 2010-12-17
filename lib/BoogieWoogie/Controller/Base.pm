@@ -7,13 +7,17 @@ has 'app';
 has 'is_rendered';
 has 'output';
 
+has 'req';
+has 'res';
+
 sub render_text {
     my $self = shift;
     my $text = shift;
 
     $self->set_is_rendered(1);
 
-    $self->set_output($text);
+    $self->res->status(200);
+    $self->res->body($text);
 }
 
 sub render {
