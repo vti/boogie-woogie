@@ -69,11 +69,10 @@ sub _create_controller {
     catch {
 
         # Rethrow exception if it's not about class not being found
-        if (!Boose::Exception->caught(
-                $_ => 'Boose::Exception::ClassNotFound'
-            )
-          )
-        {
+        my $e =
+          Boose::Exception->caught($_ => 'Boose::Exception::ClassNotFound');
+
+        if (!$e) {
             throw($_);
         }
 
