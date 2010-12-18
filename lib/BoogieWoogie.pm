@@ -6,23 +6,33 @@ extends 'Boose::Base';
 use overload q(&{}) => sub { shift->psgi_app }, fallback => 1;
 
 use Scalar::Util 'blessed';
-use Plack::Request;
-use Plack::Response;
 
+use BoogieWoogie::Request;
+use BoogieWoogie::Response;
+use BoogieWoogie::Home;
 use BoogieWoogie::Renderer;
 use BoogieWoogie::RoutesDispatcher;
 use BoogieWoogie::Logger;
+use BoogieWoogie::Formats;
 
+has 'home'       => sub { BoogieWoogie::Home->new };
 has 'dispatcher' => sub { BoogieWoogie::RoutesDispatcher->new };
 has 'renderer'   => sub { BoogieWoogie::Renderer->new };
-has 'logger'     => sub { BoogieWoogie::Logger->new };
+has 'log'        => sub { BoogieWoogie::Logger->new };
+has 'formats'    => sub { BoogieWoogie::Formats->new };
+
+has 'tmpdir' => sub { require File::Spec; File::Spec->tmpdir };
 
 sub new {
     my $self = shift->SUPER::new(@_);
 
+    $self->home->detect_root_from_caller(caller);
+
     $self->dispatcher->set_app($self);
-    $self->dispatcher->set_log($self->logger);
+    $self->dispatcher->set_log($self->log);
     $self->dispatcher->set_renderer($self->renderer);
+
+    $self->renderer->set_app($self);
 
     $self->startup;
 
@@ -43,10 +53,10 @@ sub _compile_psgi_app {
     my $app = sub {
         my $env = shift;
 
-        my $req = Plack::Request->new($env);
+        my $req = BoogieWoogie::Request->new($env);
 
-        unless ($self->logger->logger) {
-            $self->logger->set_logger($env->{'psgix.logger'});
+        unless ($self->log->logger) {
+            $self->log->set_logger($env->{'psgix.logger'});
         }
 
         my $output = $self->dispatcher->dispatch($req);
@@ -54,14 +64,14 @@ sub _compile_psgi_app {
         if (not defined $output) {
             return [404, ['Content-Type' => 'text/html'], ["404 Not Found"]];
         }
-        elsif (blessed($output) && $output->isa('Plack::Response')) {
+        elsif (blessed($output) && $output->isa('BoogieWoogie::Response')) {
             return $output->finalize;
         }
         elsif (ref $output eq 'CODE') {
             return $output;
         }
         else {
-            my $res = Plack::Response->new(200);
+            my $res = BoogieWoogie::Response->new(200);
             $res->content_type('text/html');
             $res->body($output);
             return $res->finalize;
