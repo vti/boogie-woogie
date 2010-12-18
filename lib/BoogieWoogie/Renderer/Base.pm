@@ -17,7 +17,14 @@ sub render {
         return $self->_render_string($$input, $output, @_);
     }
 
-    return $self->_render_template($input, $output, @_);
+    my $retval = $self->_render_template($input, $output, @_);
+    if (not defined $retval) {
+        $self->app->log->debug(
+            qq/Template '$input' not found or not readable/);
+        return;
+    }
+
+    return $retval;
 }
 
 sub _render_template {
