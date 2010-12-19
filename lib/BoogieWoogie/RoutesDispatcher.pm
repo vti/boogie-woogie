@@ -7,11 +7,10 @@ use Boose::Loader;
 use BoogieWoogie::Util qw(camelize);
 use BoogieWoogie::NullLogger;
 
-has 'app';
+has [qw/app renderer/] => {weak_ref => 1};
 has 'controller_namespace' => sub { ref $_[0]->app };
 has 'log'                  => sub { BoogieWoogie::NullLogger->new };
-has 'renderer';
-has 'router' => sub { Router->new };
+has 'router'               => sub { Router->new };
 
 sub dispatch {
     my $self = shift;

@@ -2,7 +2,7 @@ package BoogieWoogie::Renderer::Base;
 use Boose;
 extends 'Boose::Base';
 
-has 'app';
+has 'app' => {weak_ref => 1};
 has 'encoding' => 'utf8';
 has 'config' => sub { {} };
 

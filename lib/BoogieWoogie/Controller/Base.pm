@@ -3,10 +3,8 @@ use Boose;
 
 extends 'Boose::Base';
 
-has [qw/app req res/];
-
+has [qw/app req res renderer/] => {weak_ref => 1};
 has 'is_rendered';
-has 'renderer';
 
 sub param { shift->req->param(@_) }
 

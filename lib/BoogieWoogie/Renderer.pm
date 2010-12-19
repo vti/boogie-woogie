@@ -2,7 +2,7 @@ package BoogieWoogie::Renderer;
 use Boose;
 extends 'Boose::Base';
 
-has 'app';
+has 'app' => {weak_ref => 1};
 
 sub render {
     my $self    = shift;
