@@ -55,9 +55,7 @@ sub _compile_psgi_app {
 
         my $req = BoogieWoogie::Request->new($env);
 
-        unless ($self->log->logger) {
-            $self->log->set_logger($env->{'psgix.logger'});
-        }
+        $self->log->set_logger($env->{'psgix.logger'});
 
         my $output = $self->dispatcher->dispatch($req);
 
