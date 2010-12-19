@@ -17,6 +17,8 @@ sub render {
         return $self->_render_string($$input, $output, @_);
     }
 
+    $self->app->log->debug(qq/Rendering template '$input'/);
+
     my $retval = $self->_render_template($input, $output, @_);
     if (not defined $retval) {
         $self->app->log->debug(
