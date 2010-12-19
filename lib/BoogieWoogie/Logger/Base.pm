@@ -2,7 +2,7 @@ package BoogieWoogie::Logger::Base;
 use Boose;
 extends 'Boose::Base';
 
-has 'logger';
+has 'logger' => sub { sub {} };
 
 sub debug { shift->_log('debug', @_) }
 sub info  { shift->_log('info',  @_) }

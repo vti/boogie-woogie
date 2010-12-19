@@ -8,10 +8,14 @@ use base 'Test::Class';
 use Test::More;
 use Try::Tiny;
 
+use TestApp;
 use TestRenderer;
 use BoogieWoogie::Renderer;
 
-sub _build_object { shift; BoogieWoogie::Renderer->new(@_) }
+sub _build_object {
+    shift;
+    BoogieWoogie::Renderer->new(app => TestApp->new, @_);
+}
 
 sub constructor : Test(1) {
     my $self = shift;
