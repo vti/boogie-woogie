@@ -34,6 +34,7 @@ sub render {
     my $format = 'html';
 
     my $view = $self->_build_view(@_, format => $format);
+    return $self->render_not_found unless defined $view;
 
     my $output = $view->render;
 
@@ -60,11 +61,28 @@ sub _build_view {
 
     if (@_ % 2 == 0) {
         my $controller = $self->controller_name;
-        my $action = $self->action_name;
+        my $action     = $self->action_name;
 
-        $view = ref($self->app) . '::' . camelize("$controller\_$action\_view");
+        $view =
+          ref($self->app) . '::' . camelize("$controller\_$action\_view");
 
-        Boose::Loader::load($view);
+        try {
+            Boose::Loader::load($view);
+        }
+        catch {
+            my $class_not_found =
+              Boose::Exception->caught($_ => 'Boose::Exception::ClassNotFound');
+
+            # Rethrow exception if it's not about class not being found
+            throw($_) unless $class_not_found;
+
+            $self->app->log->warn("View '$view' not found");
+
+            $view = undef;
+        };
+
+        return unless defined $view;
+
         $view = $view->new(@_);
     }
     else {

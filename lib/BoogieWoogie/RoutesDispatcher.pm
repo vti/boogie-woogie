@@ -59,9 +59,7 @@ sub dispatch {
 
     return $res if $res->status;
 
-    my $output = $controller->render;
-    $res->status(200);
-    $res->body($output);
+    $controller->render;
 
     return $res;
 }
