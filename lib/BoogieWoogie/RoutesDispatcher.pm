@@ -7,7 +7,7 @@ use Boose::Loader;
 use BoogieWoogie::Util qw(camelize);
 use BoogieWoogie::NullLogger;
 
-has [qw/app renderer/] => {weak_ref => 1};
+has [qw/app/] => {weak_ref => 1};
 has 'controller_namespace' => sub { ref $_[0]->app };
 has 'log'                  => sub { BoogieWoogie::NullLogger->new };
 has 'router'               => sub { Router->new };
@@ -29,17 +29,17 @@ sub dispatch {
 
     my $params = $match->params;
 
-    my $controller = $params->{controller};
-    my $action     = $params->{action};
+    my $controller_name = $params->{controller};
+    my $action_name     = $params->{action};
 
     die "Don't know how to handle *this* yet, just die"
-      unless defined $controller && defined $action;
+      unless defined $controller_name && defined $action_name;
 
-    $controller = $self->_create_controller($controller);
+    my $controller = $self->_create_controller($controller_name);
     return $self->_build_not_found_response($res) unless defined $controller;
 
-    if (!$controller->action_exists($action)) {
-        $self->log->warn("No action '$action' found within a controller '"
+    if (!$controller->action_exists($action_name)) {
+        $self->log->warn("No action '$action_name' found within a controller '"
               . ref($controller)
               . "'");
         return $self->_build_not_found_response($res);
@@ -48,16 +48,18 @@ sub dispatch {
     $controller->set_app($self->app);
     $controller->set_req($req);
     $controller->set_res($res);
-    $controller->set_renderer($self->renderer);
 
-    my $action_retval = $controller->call_action($action);
+    $controller->set_controller_name($controller_name);
+    $controller->set_action_name($action_name);
+
+    my $action_retval = $controller->call_action($action_name);
     return $res if $controller->is_rendered;
 
     return $action_retval if ref $action_retval eq 'CODE';
 
     return $res if $res->status;
 
-    my $output = $self->renderer->render;
+    my $output = $controller->render;
     $res->status(200);
     $res->body($output);
 

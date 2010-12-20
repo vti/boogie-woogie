@@ -3,8 +3,13 @@ use Boose;
 
 extends 'Boose::Base';
 
-has [qw/app req res renderer/] => {weak_ref => 1};
+use BoogieWoogie::Util 'camelize';
+
+has [qw/app req res/] => {weak_ref => 1};
 has 'is_rendered';
+
+has 'controller_name';
+has 'action_name';
 
 sub param { shift->req->param(@_) }
 
@@ -24,23 +29,17 @@ sub render_text {
 }
 
 sub render {
-    my $self   = shift;
-    my $input  = shift;
-    my %params = @_;
+    my $self = shift;
 
-    my $output = $self->render_inline($input, %params);
+    my $format = 'html';
+
+    my $view = $self->_build_view(@_, format => $format);
+
+    my $output = $view->render;
 
     $self->set_is_rendered(1);
 
     if (defined $output) {
-        my ($format, $handler);
-
-        if (!ref $input) {
-            (undef, $format, $handler) = $self->_parse_template_name($input);
-        }
-
-        $format //= $params{format} // 'html';
-
         my $formats = $self->app->formats;
 
         $self->res->status(200);
@@ -54,41 +53,31 @@ sub render {
     return $self;
 }
 
-sub render_inline {
-    my $self   = shift;
-    my $input  = shift;
-    my %params = @_;
+sub _build_view {
+    my $self = shift;
 
-    my $handler;
-    my $format = $params{format} // 'html';
+    my $view;
 
-    if (ref $input eq 'SCALAR') {
-        throw(  qq{Specify 'handler' parameter when }
-              . qq{rendering from a string})
-          unless exists $params{handler};
+    if (@_ % 2 == 0) {
+        my $controller = $self->controller_name;
+        my $action = $self->action_name;
 
-        $handler = $params{handler};
+        $view = ref($self->app) . '::' . camelize("$controller\_$action\_view");
+
+        Boose::Loader::load($view);
+        $view = $view->new(@_);
     }
     else {
-        (undef, undef, $handler) = $self->_parse_template_name($input);
+        die 'TODO';
     }
 
-    return $self->_render($handler, $input);
+    $view->set_app($self->app);
+
+    return $view;
 }
 
-sub _parse_template_name {
-    my $self     = shift;
-    my $template = shift;
-
-    return split /\./ => File::Basename::basename($template);
-}
-
-sub _render {
-    my $self = shift;
-    my ($handler, $input) = @_;
-
-    my $vars = {};
-    return $self->renderer->render($handler, $input, $vars);
+sub render_partial {
+    die 'TODO';
 }
 
 sub render_not_found {

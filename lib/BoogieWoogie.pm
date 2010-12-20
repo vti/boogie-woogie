@@ -10,14 +10,12 @@ use Scalar::Util 'blessed';
 use BoogieWoogie::Request;
 use BoogieWoogie::Response;
 use BoogieWoogie::Home;
-use BoogieWoogie::Renderer;
 use BoogieWoogie::RoutesDispatcher;
 use BoogieWoogie::Logger;
 use BoogieWoogie::Formats;
 
 has 'home'       => sub { BoogieWoogie::Home->new };
 has 'dispatcher' => sub { BoogieWoogie::RoutesDispatcher->new };
-has 'renderer'   => sub { BoogieWoogie::Renderer->new };
 has 'log'        => sub { BoogieWoogie::Logger->new };
 has 'formats'    => sub { BoogieWoogie::Formats->new };
 
@@ -30,9 +28,6 @@ sub new {
 
     $self->dispatcher->set_app($self);
     $self->dispatcher->set_log($self->log);
-    $self->dispatcher->set_renderer($self->renderer);
-
-    $self->renderer->set_app($self);
 
     $self->startup;
 

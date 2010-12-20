@@ -2,6 +2,6 @@
 
 use lib 't/lib';
 
-use TestLoader qw(t/renderer);
+use TestLoader qw(t/view);
 
 Test::Class->runtests;
