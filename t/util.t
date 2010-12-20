@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 8;
+use Test::More tests => 12;
 
 use BoogieWoogie::Util;
 
@@ -14,3 +14,8 @@ is(decamelize('Hello'),            'hello');
 is(decamelize('HelloThere'),       'hello_there');
 is(decamelize('HelloThere::Here'), 'hello_there-here');
 is(decamelize('ABC'),              'a_b_c');
+
+ok not defined slurp('unlikelytoexist');
+ok not defined slurp();
+ok not defined slurp('');
+ok slurp('t/util.t');

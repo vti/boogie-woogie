@@ -7,7 +7,7 @@ use base 'Exporter';
 
 use vars qw(@EXPORT @EXPORT_OK $VERSION @ISA);
 
-@EXPORT = @EXPORT_OK = qw(camelize decamelize);
+@EXPORT = @EXPORT_OK = qw(camelize decamelize slurp);
 
 sub camelize {
     my $string = shift;
@@ -44,6 +44,20 @@ sub decamelize {
     }
 
     return join '-' => @parts;
+}
+
+sub slurp {
+    my $path = shift;
+
+    return unless defined $path && -f $path;
+
+    my $content = do {
+        local $/;
+        open my $file, '<:encoding(UTF-8)', $path or return;
+        <$file>;
+    };
+
+    return $content;
 }
 
 1;
