@@ -4,6 +4,7 @@ use Boose;
 extends 'Boose::Base';
 
 use BoogieWoogie::Util 'camelize';
+use Scalar::Util 'blessed';
 
 has [qw/app req res/] => {weak_ref => 1};
 has 'is_rendered';
@@ -28,15 +29,43 @@ sub render_text {
     return $self;
 }
 
+sub render_partial {
+    my $self = shift;
+
+    if (@_ % 2 == 0) {
+        my $view = $self->_build_view(@_);
+
+        return unless defined $view;
+
+        return $view->render;
+    }
+    elsif (ref $_[0] eq 'SCALAR') {
+        my $template = shift;
+
+        my $view = $self->_build_view('BoogieWoogie::View');
+
+        return unless defined $view;
+
+        return $view->render($$template, {@_});
+    }
+    elsif (blessed($_[0])) {
+        my $view = shift;
+
+        $view = $self->_setup_view($view);
+
+        return $view->render;
+    }
+    else {
+        die 'TODO';
+    }
+}
+
 sub render {
     my $self = shift;
 
     my $format = 'html';
 
-    my $view = $self->_build_view(@_, format => $format);
-    return $self->render_not_found unless defined $view;
-
-    my $output = $view->render;
+    my $output = $self->render_partial(@_);
 
     $self->set_is_rendered(1);
 
@@ -52,50 +81,6 @@ sub render {
     }
 
     return $self;
-}
-
-sub _build_view {
-    my $self = shift;
-
-    my $view;
-
-    if (@_ % 2 == 0) {
-        my $controller = $self->controller_name;
-        my $action     = $self->action_name;
-
-        $view =
-          ref($self->app) . '::' . camelize("$controller\_$action\_view");
-
-        try {
-            Boose::Loader::load($view);
-        }
-        catch {
-            my $class_not_found =
-              Boose::Exception->caught($_ => 'Boose::Exception::ClassNotFound');
-
-            # Rethrow exception if it's not about class not being found
-            throw($_) unless $class_not_found;
-
-            $self->app->log->warn("View '$view' not found");
-
-            $view = undef;
-        };
-
-        return unless defined $view;
-
-        $view = $view->new(@_);
-    }
-    else {
-        die 'TODO';
-    }
-
-    $view->set_app($self->app);
-
-    return $view;
-}
-
-sub render_partial {
-    die 'TODO';
 }
 
 sub render_not_found {
@@ -132,6 +117,58 @@ sub call_action {
 
     my $class = ref $self ? ref $self : $self;
     $class::actions->{$name}->($self);
+}
+
+sub _setup_view {
+    my $self = shift;
+    my $view = shift;
+
+    $view->set_app($self->app);
+
+    return $view;
+}
+
+sub _build_view {
+    my $self = shift;
+
+    my $class;
+    if (@_ % 2 == 0) {
+        my $controller = $self->controller_name;
+        my $action     = $self->action_name;
+
+        $class =
+          ref($self->app) . '::' . camelize("$controller\_$action\_view");
+    }
+    else {
+        $class = shift;
+    }
+
+    return unless defined $self->_load_view($class);
+
+    my $view = $class->new(@_);
+
+    return $self->_setup_view($view);
+}
+
+sub _load_view {
+    my $self = shift;
+    my $class = shift;
+
+    try {
+        Boose::Loader::load($class);
+        return $class;
+    }
+    catch {
+        my $class_not_found =
+          Boose::Exception->caught($_ => 'Boose::Exception::ClassNotFound');
+
+        # Rethrow exception if it's not about class not being found
+        throw($_) unless $class_not_found;
+
+        $self->app->log->warn("View '$class' not found");
+
+        return;
+    };
 }
 
 1;

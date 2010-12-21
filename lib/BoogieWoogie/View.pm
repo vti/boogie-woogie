@@ -19,7 +19,7 @@ use constant TEXT => 1;
 use constant TAG  => 1;
 
 has 'app' => {is_weak => 1};
-has 'format';
+has 'format' => 'html';
 has 'templates_path' => sub { $_[0]->app->home->reldir('views') };
 
 sub render {
