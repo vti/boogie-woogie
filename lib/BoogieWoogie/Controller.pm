@@ -5,6 +5,7 @@ use warnings;
 
 use base 'Boose';
 
+use BoogieWoogie::Controller::Base;
 use Boose::Util qw(install_sub);
 
 sub import_finalize {

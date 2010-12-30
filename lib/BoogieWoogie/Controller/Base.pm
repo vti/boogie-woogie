@@ -1,6 +1,5 @@
 package BoogieWoogie::Controller::Base;
 use Boose;
-extends 'Boose::Base';
 
 use BoogieWoogie::Util 'camelize';
 use Scalar::Util 'blessed';
