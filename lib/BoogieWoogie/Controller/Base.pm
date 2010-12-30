@@ -12,6 +12,8 @@ has 'is_rendered';
 has 'controller_name';
 has 'action_name';
 
+has 'actions';
+
 sub param { shift->req->param(@_) }
 
 sub render_text {
@@ -99,8 +101,7 @@ sub add_action {
     my $class = shift;
     my ($name, $sub) = @_;
 
-    $class::actions ||= {};
-    $class::actions->{$name} = $sub;
+    $class->_actions->{$name} = $sub;
 }
 
 sub action_exists {
@@ -108,15 +109,27 @@ sub action_exists {
     my $name = shift;
 
     my $class = ref $self ? ref $self : $self;
-    return exists $class::actions->{$name};
+
+    return unless exists $self->_actions->{$name};
 }
 
 sub call_action {
     my $self = shift;
     my $name = shift;
 
-    my $class = ref $self ? ref $self : $self;
-    $class::actions->{$name}->($self);
+    return unless $self->action_exists($name);
+
+    return $self->_actions->{$name}->($self);
+}
+
+sub _actions {
+    my $class = shift;
+
+    my $actions = $class->meta->attr('actions')->static_value;
+    return $actions if defined $actions;
+
+    $class->meta->attr('actions')->set_static_value({});
+    return $class->meta->attr('actions')->static_value;
 }
 
 sub _setup_view {
@@ -151,7 +164,7 @@ sub _build_view {
 }
 
 sub _load_view {
-    my $self = shift;
+    my $self  = shift;
     my $class = shift;
 
     try {
