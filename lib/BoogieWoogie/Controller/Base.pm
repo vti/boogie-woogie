@@ -1,6 +1,5 @@
 package BoogieWoogie::Controller::Base;
 use Boose;
-
 extends 'Boose::Base';
 
 use BoogieWoogie::Util 'camelize';
@@ -12,7 +11,7 @@ has 'is_rendered';
 has 'controller_name';
 has 'action_name';
 
-has 'actions';
+static 'actions' => sub { {} };
 
 sub param { shift->req->param(@_) }
 
@@ -101,16 +100,14 @@ sub add_action {
     my $class = shift;
     my ($name, $sub) = @_;
 
-    $class->_actions->{$name} = $sub;
+    $class->actions->{$name} = $sub;
 }
 
 sub action_exists {
     my $self = shift;
     my $name = shift;
 
-    my $class = ref $self ? ref $self : $self;
-
-    return unless exists $self->_actions->{$name};
+    return unless exists $self->actions->{$name};
 }
 
 sub call_action {
@@ -119,17 +116,7 @@ sub call_action {
 
     return unless $self->action_exists($name);
 
-    return $self->_actions->{$name}->($self);
-}
-
-sub _actions {
-    my $class = shift;
-
-    my $actions = $class->meta->attr('actions')->static_value;
-    return $actions if defined $actions;
-
-    $class->meta->attr('actions')->set_static_value({});
-    return $class->meta->attr('actions')->static_value;
+    return $self->actions->{$name}->($self);
 }
 
 sub _setup_view {
