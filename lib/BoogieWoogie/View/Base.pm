@@ -154,9 +154,27 @@ sub _render_tag {
     my $name    = shift;
     my $context = shift;
 
-    return '' if $self->_is_empty($context, $name);
+    my $value;
 
-    my $value = $context->{$name};
+    # Current element
+    if ($name eq '.') {
+        return '' if $self->_is_empty($context, $name);
+
+        $value = $context->{$name};
+    }
+    else {
+        my @parts = split /\./ => $name;
+
+        $name = shift @parts;
+        return '' if $self->_is_empty($context, $name);
+
+        $value = $context->{$name};
+
+        foreach my $part (@parts) {
+            return '' if $self->_is_empty($value, $part);
+            $value = $value->{$part};
+        }
+    }
 
     if (ref $value eq 'CODE') {
         return $self->render($value->($self, '', $context) // '', $context);

@@ -19,7 +19,7 @@ sub constructor : Test(1) {
     ok $renderer;
 }
 
-sub variables : Test(19) {
+sub variables : Test(18) {
     my $self = shift;
 
     my $renderer = $self->_build_object;
@@ -68,6 +68,15 @@ sub variables : Test(19) {
 
     $output = $renderer->render('{{{var}}}', {var => '1 > 2'});
     is $output => '1 > 2';
+
+    $output = $renderer->render('{{foo.bar}}', {foo => {bar => 'baz'}});
+    is $output => 'baz';
+
+    $output = $renderer->render('{{foo.bak}}', {foo => {bar => 'baz'}});
+    is $output => '';
+
+    $output = $renderer->render('{{f1o.bak}}');
+    is $output => '';
 }
 
 sub comments : Test(5) {
