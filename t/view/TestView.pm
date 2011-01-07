@@ -1,6 +1,5 @@
 package TestView;
-use Boose;
-extends 'BoogieWoogie::View';
+use BoogieWoogie::View;
 
 has 'body';
 has 'title';

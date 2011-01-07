@@ -8,10 +8,9 @@ use base 'Test::Class';
 use Test::More;
 use Try::Tiny;
 
-use BoogieWoogie::View;
 use TestView;
 
-sub _build_object { shift; BoogieWoogie::View->new(@_) }
+sub _build_object { shift; TestView->new(@_) }
 
 sub constructor : Test(1) {
     my $self = shift;
@@ -206,8 +205,7 @@ EOF
 sub partials : Test(3) {
     my $self = shift;
 
-    my $renderer =
-      $self->_build_object(templates_path => 't/view/templates');
+    my $renderer = $self->_build_object(templates_path => 't/view/templates');
 
     my $output = $renderer->render('{{>partial}}');
     is $output => 'Hello from partial!';
@@ -248,7 +246,7 @@ EOF
 sub class : Test(1) {
     my $self = shift;
 
-    my $view = TestView->new(title => 'Hello', body => 'there!');
+    my $view = $self->_build_object(title => 'Hello', body => 'there!');
     $view->set_templates_path('t/view/templates');
 
     my $expected = <<'EOF';
