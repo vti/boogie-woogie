@@ -155,6 +155,7 @@ sub _render_tag {
     my $context = shift;
 
     my $value;
+    my %args;
 
     # Current element
     if ($name eq '.') {
@@ -163,6 +164,8 @@ sub _render_tag {
         $value = $context->{$name};
     }
     else {
+        ($name, %args) = $self->_parse_name($context, $name);
+
         my @parts = split /\./ => $name;
 
         $name = shift @parts;
@@ -177,10 +180,32 @@ sub _render_tag {
     }
 
     if (ref $value eq 'CODE') {
-        return $self->render($value->($self, '', $context) // '', $context);
+        return $self->render($value->($self, '', {%args}) // '', $context);
     }
 
     return $value;
+}
+
+sub _parse_name {
+    my $self    = shift;
+    my $context = shift;
+    my $name    = shift;
+
+    my @pairs;
+    ($name, @pairs) = split ' ' => $name;
+
+    my %args = map { split '=' } @pairs;
+    foreach my $key (keys %args) {
+        my $value = $args{$key};
+        if ($value =~ s/\A"(.*)"\z/$1/) {
+            $args{$key} = $value;
+        }
+        else {
+            $args{$key} = exists $context->{$value} ? $context->{$value} : '';
+        }
+    }
+
+    return ($name, %args);
 }
 
 sub _render_tag_escaped {

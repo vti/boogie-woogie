@@ -79,6 +79,23 @@ sub variables : Test(18) {
     is $output => '';
 }
 
+sub variables_coderef : Test(2) {
+    my $self = shift;
+
+    my $renderer = $self->_build_object;
+
+    my $output = $renderer->render('{{foo}}', {foo => sub {'bar'}});
+    is $output => 'bar';
+
+    $output = $renderer->render(
+        '{{foo a="b" c=bar}}',
+        {   foo => sub { join ',', sort values %{$_[2]} },
+            bar => 'd'
+        }
+    );
+    is $output => 'b,d';
+}
+
 sub comments : Test(5) {
     my $self = shift;
 
