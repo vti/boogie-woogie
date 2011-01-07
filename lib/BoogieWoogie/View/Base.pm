@@ -198,7 +198,7 @@ sub _render_section {
     }
     elsif (ref $value eq 'ARRAY') {
         foreach my $el (@$value) {
-            $output .= $self->render($template, $el);
+            $output .= $self->render($template, ref $el ? $el : {'.' => $el});
         }
     }
     elsif (ref $value eq 'CODE') {
