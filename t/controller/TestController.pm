@@ -1,8 +1,8 @@
 package TestController;
 use BoogieWoogie::Controller;
 
-action foo => sub {
+sub run {
     'Hello world!';
-};
+}
 
 1;

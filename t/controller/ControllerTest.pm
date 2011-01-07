@@ -11,7 +11,7 @@ use Try::Tiny;
 use TestController;
 use TestChildController;
 
-sub _build_object { shift; TestController->new(@_) }
+sub _build_object       { shift; TestController->new(@_) }
 sub _build_child_object { shift; TestChildController->new(@_) }
 
 sub constructor : Test(1) {
@@ -21,22 +21,12 @@ sub constructor : Test(1) {
     ok $c;
 }
 
-sub action_exists : Test(2) {
-    my $self = shift;
-
-    my $c = $self->_build_object;
-
-    ok $c->action_exists('foo');
-    ok !$c->action_exists('bar');
-}
-
 sub call_action : Test(2) {
     my $self = shift;
 
     my $c = $self->_build_object;
 
-    is $c->call_action('foo') => 'Hello world!';
-    ok !$c->call_action('bar');
+    is $c->run => 'Hello world!';
 }
 
 sub inheritance : Test(2) {
@@ -44,8 +34,7 @@ sub inheritance : Test(2) {
 
     my $c = $self->_build_child_object;
 
-    ok $c->action_exists('foo');
-    ok $c->action_exists('bar');
+    is $c->run => 'Haha';
 }
 
 1;

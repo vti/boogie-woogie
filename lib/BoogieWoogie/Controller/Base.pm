@@ -7,10 +7,7 @@ use Scalar::Util 'blessed';
 has [qw/app req res/] => {weak_ref => 1};
 has 'is_rendered';
 
-has 'controller_name';
-has 'action_name';
-
-static 'actions' => sub { {} };
+has 'name';
 
 sub param { shift->req->param(@_) }
 
@@ -33,9 +30,14 @@ sub render_partial {
     my $self = shift;
 
     if (@_ % 2 == 0) {
-        my $view = $self->_build_view(@_);
+        my $view = $self->view;
 
         return unless defined $view;
+
+        my %params = @_;
+        foreach my $key (keys %params) {
+            $view->set($key => $params{$key});
+        }
 
         return $view->render;
     }
@@ -95,27 +97,12 @@ sub render_not_found {
     $self->res->body('404 Not Found');
 }
 
-sub add_action {
-    my $class = shift;
-    my ($name, $sub) = @_;
-
-    $class->actions->{$name} = $sub;
-}
-
-sub action_exists {
+sub view {
     my $self = shift;
-    my $name = shift;
 
-    return unless exists $self->actions->{$name};
-}
+    return $self->{view} if $self->{view};
 
-sub call_action {
-    my $self = shift;
-    my $name = shift;
-
-    return unless $self->action_exists($name);
-
-    return $self->actions->{$name}->($self);
+    return $self->{view} = $self->_build_view;
 }
 
 sub _setup_view {
@@ -132,11 +119,9 @@ sub _build_view {
 
     my $class;
     if (@_ % 2 == 0) {
-        my $controller = $self->controller_name;
-        my $action     = $self->action_name;
+        my $controller = $self->name;
 
-        $class =
-          ref($self->app) . '::' . camelize("$controller\_$action\_view");
+        $class = ref($self->app) . '::' . camelize("$controller\_view");
     }
     else {
         $class = shift;
