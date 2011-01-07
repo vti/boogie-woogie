@@ -166,21 +166,31 @@ sub _render_tag {
     else {
         ($name, %args) = $self->_parse_name($context, $name);
 
-        my @parts = split /\./ => $name;
-
-        $name = shift @parts;
-        return '' if $self->_is_empty($context, $name);
-
-        $value = $context->{$name};
-
-        foreach my $part (@parts) {
-            return '' if $self->_is_empty($value, $part);
-            $value = $value->{$part};
-        }
+        $value = $self->_get_value($context, $name);
     }
 
     if (ref $value eq 'CODE') {
         return $self->render($value->($self, '', {%args}) // '', $context);
+    }
+
+    return $value;
+}
+
+sub _get_value {
+    my $self = shift;
+    my $context = shift;
+    my $name = shift;
+
+    my @parts = split /\./ => $name;
+
+    $name = shift @parts;
+    return '' if $self->_is_empty($context, $name);
+
+    my $value = $context->{$name};
+
+    foreach my $part (@parts) {
+        return '' if $self->_is_empty($value, $part);
+        $value = $value->{$part};
     }
 
     return $value;
@@ -231,9 +241,8 @@ sub _render_section {
     my $template = shift;
     my $context  = shift;
 
-    return '' unless exists $context->{$name};
+    my $value = $self->_get_value($context, $name);
 
-    my $value  = $context->{$name};
     my $output = '';
 
     if (ref $value eq 'HASH') {

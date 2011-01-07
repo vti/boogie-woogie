@@ -122,7 +122,7 @@ sub comments : Test(5) {
     is $output => "foo  bar";
 }
 
-sub sections : Test(8) {
+sub sections : Test(9) {
     my $self = shift;
 
     my $renderer = $self->_build_object;
@@ -147,6 +147,11 @@ sub sections : Test(8) {
 
     $output =
       $renderer->render('{{#list}}{{.}}{{/list}}', {list => [1, 2, 3]});
+    is $output => '123';
+
+    $output =
+      $renderer->render('{{#foo.list}}{{.}}{{/foo.list}}',
+        {foo => {list => [1, 2, 3]}});
     is $output => '123';
 
     $output = $renderer->render('{{#list}}{{n}}{{/list}}', {list => []});
