@@ -7,6 +7,8 @@ has 'home';
 has 'file' => 'config';
 has 'ext'  => 'pl';
 
+has defaults => sub { {} };
+
 has 'log' => sub { BoogieWoogie::Logger->new };
 
 use Config::Any;
@@ -25,13 +27,17 @@ sub load {
         }
     );
 
+    my $defaults = $self->defaults;
+
     unless (%$config) {
         $self->log->debug("Config '$file' not found");
-        return {};
+        return $defaults;
     }
 
     $self->log->debug("Reading configuration from '$file'");
-    return (values %$config)[0];
+
+    my $hashref = (values %$config)[0];
+    return {%$defaults, %$hashref};
 }
 
 1;

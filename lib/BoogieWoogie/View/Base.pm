@@ -21,6 +21,15 @@ has 'app' => {is_weak => 1};
 has 'format' => 'html';
 has 'templates_path' => sub { $_[0]->app->home->reldir('views') };
 
+sub render_file {
+    my $self    = shift;
+    my $file    = shift;
+    my $context = shift;
+
+    my $template = $self->_slurp_template($file);
+    return $self->render($template, $context);
+}
+
 sub render {
     my $self = shift;
 

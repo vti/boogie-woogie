@@ -19,7 +19,7 @@ sub constructor : Test(1) {
     ok $config_loader;
 }
 
-sub not_found : Test(1) {
+sub not_found : Test(2) {
     my $self = shift;
 
     my $config_loader = $self->_build_object;
@@ -27,14 +27,20 @@ sub not_found : Test(1) {
     $config_loader->set_home('/');
     $config_loader->set_file('my_app');
     is_deeply $config_loader->load => {};
+
+    $config_loader->set_defaults({foo => 'baz'});
+    is_deeply $config_loader->load => {foo => 'baz'};
 }
 
-sub perl : Test(1) {
+sub perl : Test(2) {
     my $self = shift;
 
     my $config_loader = $self->_build_object;
 
     $config_loader->set_home("t/config_loader/configs/");
+    is_deeply $config_loader->load => {foo => 'bar'};
+
+    $config_loader->set_defaults({foo => 'baz'});
     is_deeply $config_loader->load => {foo => 'bar'};
 }
 

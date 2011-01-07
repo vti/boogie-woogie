@@ -1,7 +1,7 @@
 package BoogieWoogie::Controller::Base;
 use Boose;
 
-use BoogieWoogie::Util 'camelize';
+use BoogieWoogie::Util qw/camelize slurp/;
 use Scalar::Util 'blessed';
 
 has [qw/app req res/] => {weak_ref => 1};
@@ -35,8 +35,16 @@ sub render_partial {
         return unless defined $view;
 
         my %params = @_;
+        my $wrapper = delete $params{wrapper};
+
         foreach my $key (keys %params) {
             $view->set($key => $params{$key});
+        }
+
+        if ($wrapper) {
+            my $content = $view->render;
+            my $context = $view->to_hash;
+            return $view->render_file($wrapper, {%$context, content => $content});
         }
 
         return $view->render;
