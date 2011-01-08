@@ -113,11 +113,18 @@ sub view {
     return $self->{view} = $self->_build_view;
 }
 
+sub url_for {
+    my $self = shift;
+
+    return $self->app->dispatcher->url_for($self->req, @_);
+}
+
 sub _setup_view {
     my $self = shift;
     my $view = shift;
 
     $view->set_app($self->app);
+    $view->set_req($self->req);
 
     return $view;
 }

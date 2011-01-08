@@ -154,4 +154,29 @@ sub dispatch_with_manual_response_settings : Test(2) {
     is $res->body   => 'hello';
 }
 
+sub url_for : Test(7) {
+    my $self = shift;
+
+    my $d   = $self->_build_object;
+    my $req = $self->_build_req(
+        {PATH_INFO => '/', SERVER_NAME => 'localhost', SERVER_PORT => 80});
+
+    $d->router->add_route('/',            name => 'root');
+    $d->router->add_route('/articles',    name => 'articles');
+    $d->router->add_route('/article/:id', name => 'article');
+
+    is $d->url_for($req, 'root') => 'http://localhost/';
+    is $d->url_for($req, 'root', format => 'html') =>
+      'http://localhost/.html';
+
+    is $d->url_for($req, 'articles') => 'http://localhost/articles';
+    is $d->url_for($req, 'articles', format => 'html') =>
+      'http://localhost/articles.html';
+
+    is $d->url_for($req, 'article', id => 123) =>
+      'http://localhost/article/123';
+    is $d->url_for($req, 'article', id => 123, '?' => [1 => 2]) =>
+      'http://localhost/article/123?1=2';
+}
+
 1;

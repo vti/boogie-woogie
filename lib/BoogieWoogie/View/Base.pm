@@ -2,9 +2,15 @@ package BoogieWoogie::View::Base;
 use Boose;
 extends 'Text::Caml';
 
-has 'app' => {is_weak => 1};
+has [qw/app req/] => {is_weak => 1};
 has 'format' => 'html';
 has 'templates_path' => sub { $_[0]->app->home->reldir('views') };
+
+sub url_for {
+    my $self = shift;
+
+    return $self->app->dispatcher->url_for($self->req, @_);
+}
 
 sub _class_to_template {
     my $self = shift;

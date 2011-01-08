@@ -55,6 +55,31 @@ sub dispatch {
     return $res;
 }
 
+sub url_for {
+    my $self = shift;
+    my $req  = shift;
+    my $name = shift;
+    my %args = @_;
+
+    my $query  = delete $args{'?'};
+    my $format = delete $args{format};
+
+    my $path = $self->router->build_path($name, %args);
+    $path .= '.' . $format if defined $format;
+
+    my $url = $req->base->clone;
+    $url->path($url->path . $path);
+
+    if ($query) {
+        $url->query_form(
+              ref $query eq 'ARRAY' ? @$query
+            : ref $query eq 'HASH'  ? %$query
+            :                         $query);
+    }
+
+    return $url;
+}
+
 sub _build_not_found_response {
     my $self = shift;
     my $res  = shift;
