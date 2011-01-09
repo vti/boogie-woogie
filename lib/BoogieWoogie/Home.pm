@@ -15,8 +15,7 @@ sub detect_root_from_caller {
 }
 
 sub reldir {
-    my $self  = shift;
-    my @parts = @_;
+    my $self = shift;
 
     return File::Spec->catdir($self->root, @_);
 }
