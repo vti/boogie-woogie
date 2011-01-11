@@ -2,6 +2,8 @@ package BoogieWoogie::View::Base;
 use Boose;
 extends 'Text::Caml';
 
+use BoogieWoogie::Util 'decamelize';
+
 has [qw/app req/] => {is_weak => 1};
 has 'format' => 'html';
 has 'templates_path' => sub { $_[0]->app->home->reldir('views') };
@@ -15,7 +17,7 @@ sub url_for {
 sub _class_to_template {
     my $self = shift;
 
-    my $prefix = ref $self->app;
+    my $prefix = decamelize(ref $self->app);
 
     my $template = $self->SUPER::_class_to_template;
 
