@@ -105,6 +105,18 @@ sub render_not_found {
     $self->res->body('404 Not Found');
 }
 
+sub redirect {
+    my $self = shift;
+
+    my $url_for = $self->url_for(@_);
+
+    $self->set_is_rendered(1);
+
+    $self->res->status(302);
+    $self->res->location($url_for);
+    $self->res->body('302 Redirect');
+}
+
 sub view {
     my $self = shift;
 
