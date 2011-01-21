@@ -6,6 +6,7 @@ use Scalar::Util 'blessed';
 
 has [qw/app req res/] => {weak_ref => 1};
 has 'is_rendered';
+has 'match';
 
 has 'name';
 

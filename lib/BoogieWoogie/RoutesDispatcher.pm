@@ -37,6 +37,7 @@ sub dispatch {
     my $controller = $self->_create_controller($name);
     return $self->_build_not_found_response($res) unless defined $controller;
 
+    $controller->set_match($match);
     $controller->set_app($self->app);
     $controller->set_req($req);
     $controller->set_res($res);
