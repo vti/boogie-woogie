@@ -1,5 +1,5 @@
 package TestApp::FooController;
-use BoogieWoogie::Controller;
+use Boose 'BoogieWoogie::Controller';
 
 sub run {
     my $self = shift;

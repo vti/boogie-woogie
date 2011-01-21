@@ -1,6 +1,5 @@
 package TestChildController;
-use BoogieWoogie::Controller;
-extends 'TestController';
+use Boose 'TestController';
 
 sub run {
     'Haha';

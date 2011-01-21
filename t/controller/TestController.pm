@@ -1,5 +1,5 @@
 package TestController;
-use BoogieWoogie::Controller;
+use Boose 'BoogieWoogie::Controller';
 
 sub run {
     'Hello world!';
