@@ -1,6 +1,5 @@
 package BoogieWoogie::Logger::Base;
 use Boose;
-extends 'Boose::Base';
 
 has 'logger' => sub { sub {} };
 

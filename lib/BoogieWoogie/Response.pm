@@ -1,5 +1,4 @@
 package BoogieWoogie::Response;
-use Boose;
-extends 'Plack::Response';
+use Boose 'Plack::Response';
 
 1;

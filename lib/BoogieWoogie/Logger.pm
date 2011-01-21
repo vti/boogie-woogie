@@ -1,6 +1,5 @@
 package BoogieWoogie::Logger;
-use Boose;
-extends 'BoogieWoogie::Logger::Base';
+use Boose 'BoogieWoogie::Logger::Base';
 
 my $ESCAPE = pack('C', 0x1B);
 

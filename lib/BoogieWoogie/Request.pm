@@ -1,6 +1,5 @@
 package BoogieWoogie::Request;
-use Boose;
-extends 'Plack::Request';
+use Boose 'Plack::Request';
 
 use BoogieWoogie::Response;
 

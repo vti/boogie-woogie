@@ -1,6 +1,5 @@
 package BoogieWoogie::Home;
 use Boose;
-extends 'Boose::Base';
 
 require File::Spec;
 require File::Basename;

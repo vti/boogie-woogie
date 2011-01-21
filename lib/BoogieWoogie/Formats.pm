@@ -1,6 +1,5 @@
 package BoogieWoogie::Formats;
 use Boose;
-extends 'Boose::Base';
 
 has 'formats' => sub {
     {   txt  => 'text/plain',

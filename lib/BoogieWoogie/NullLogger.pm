@@ -1,6 +1,5 @@
 package BoogieWoogie::NullLogger;
-use Boose;
-extends 'BoogieWoogie::Logger::Base';
+use Boose 'BoogieWoogie::Logger::Base';
 
 sub debug { }
 sub info  { }

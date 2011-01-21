@@ -1,6 +1,5 @@
 package BoogieWoogie::RoutesDispatcher;
 use Boose;
-extends 'Boose::Base';
 
 use Router;
 use Boose::Loader;

@@ -1,5 +1,4 @@
 package TestApp;
-use Boose;
-extends 'BoogieWoogie';
+use Boose 'BoogieWoogie';
 
 1;

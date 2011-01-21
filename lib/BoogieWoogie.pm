@@ -1,8 +1,6 @@
 package BoogieWoogie;
 use Boose;
 
-extends 'Boose::Base';
-
 use overload q(&{}) => sub { shift->psgi_app }, fallback => 1;
 
 use Scalar::Util 'blessed';

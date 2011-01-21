@@ -1,6 +1,5 @@
 package BoogieWoogie::View::Base;
-use Boose;
-extends 'Text::Caml';
+use Boose 'Text::Caml';
 
 use BoogieWoogie::Util 'decamelize';
 

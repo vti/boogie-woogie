@@ -31,9 +31,7 @@ need.
 Create your app:
 
     package MyApp;
-    use Boose;
-
-    extends 'BoogieWoogie';
+    use Boose 'BoogieWoogie';
 
     sub startup {
         my $self = shift;
