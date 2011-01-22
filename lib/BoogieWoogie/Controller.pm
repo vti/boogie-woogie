@@ -1,22 +1,20 @@
 package BoogieWoogie::Controller;
+
 use Boose;
 
+use BoogieWoogie::Logger;
 use BoogieWoogie::Util qw/camelize slurp/;
-use Scalar::Util 'blessed';
 
 has [qw/app req res/] => {weak_ref => 1};
-has 'is_rendered';
 has 'match';
-
 has 'name';
+has log => sub { BoogieWoogie::Logger->new(env => shift->req->env) };
 
 sub param { shift->req->param(@_) }
 
 sub render_text {
     my $self = shift;
     my $text = shift;
-
-    $self->set_is_rendered(1);
 
     my $formats = $self->app->formats;
 
@@ -30,45 +28,7 @@ sub render_text {
 sub render_partial {
     my $self = shift;
 
-    if (@_ % 2 == 0) {
-        my $view = $self->view;
-
-        return unless defined $view;
-
-        my %params = @_;
-        my $wrapper = delete $params{wrapper};
-
-        foreach my $key (keys %params) {
-            $view->set($key => $params{$key});
-        }
-
-        if ($wrapper) {
-            my $content = $view->render;
-            my $context = $view->to_hash;
-            return $view->render_file($wrapper, {%$context, content => $content});
-        }
-
-        return $view->render;
-    }
-    elsif (ref $_[0] eq 'SCALAR') {
-        my $template = shift;
-
-        my $view = $self->_build_view('BoogieWoogie::View');
-
-        return unless defined $view;
-
-        return $view->render($$template, {@_});
-    }
-    elsif (blessed($_[0])) {
-        my $view = shift;
-
-        $view = $self->_setup_view($view);
-
-        return $view->render;
-    }
-    else {
-        die 'TODO';
-    }
+    $self->app->renderer->render(@_);
 }
 
 sub render {
@@ -78,8 +38,6 @@ sub render {
 
     my $output = $self->render_partial(@_);
 
-    $self->set_is_rendered(1);
-
     if (defined $output) {
         my $formats = $self->app->formats;
 
@@ -88,6 +46,7 @@ sub render {
         $self->res->body($output);
     }
     else {
+        $self->log->debug('Rendering failed');
         $self->render_not_found;
     }
 
@@ -96,8 +55,6 @@ sub render {
 
 sub render_not_found {
     my $self = shift;
-
-    $self->set_is_rendered(1);
 
     my $formats = $self->app->formats;
 
@@ -111,76 +68,15 @@ sub redirect {
 
     my $url_for = $self->url_for(@_);
 
-    $self->set_is_rendered(1);
-
     $self->res->status(302);
     $self->res->location($url_for);
     $self->res->body('302 Redirect');
 }
 
-sub view {
-    my $self = shift;
-
-    return $self->{view} if $self->{view};
-
-    return $self->{view} = $self->_build_view;
-}
-
 sub url_for {
     my $self = shift;
 
-    return $self->app->dispatcher->url_for($self->req, @_);
-}
-
-sub _setup_view {
-    my $self = shift;
-    my $view = shift;
-
-    $view->set_app($self->app);
-    $view->set_req($self->req);
-
-    return $view;
-}
-
-sub _build_view {
-    my $self = shift;
-
-    my $class;
-    if (@_ % 2 == 0) {
-        my $controller = $self->name;
-
-        $class = ref($self->app) . '::' . camelize("$controller\_view");
-    }
-    else {
-        $class = shift;
-    }
-
-    return unless defined $self->_load_view($class);
-
-    my $view = $class->new(@_);
-
-    return $self->_setup_view($view);
-}
-
-sub _load_view {
-    my $self  = shift;
-    my $class = shift;
-
-    try {
-        Boose::Loader::load($class);
-        return $class;
-    }
-    catch {
-        my $class_not_found =
-          Boose::Exception->caught($_ => 'Boose::Exception::ClassNotFound');
-
-        # Rethrow exception if it's not about class not being found
-        throw($_) unless $class_not_found;
-
-        $self->app->log->warn("View '$class' not found");
-
-        return;
-    };
+    return $self->app->url_for($self->req, @_);
 }
 
 1;
