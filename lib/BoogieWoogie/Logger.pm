@@ -1,17 +1,23 @@
 package BoogieWoogie::Logger;
-use Boose 'BoogieWoogie::Logger::Base';
 
-my $ESCAPE = pack('C', 0x1B);
+use Boose;
+
+has 'env' => sub { {} };
+
+sub debug { shift->_log('debug', @_) }
+sub info  { shift->_log('info',  @_) }
+sub warn  { shift->_log('warn',  @_) }
+sub error { shift->_log('debug', @_) }
+sub fatal { shift->_log('fatal', @_) }
 
 sub _log {
     my $self = shift;
-    my ($level, $message) = @_;
 
-    if ($ENV{BOOGIE_WOOGIE_LOG_COLORS} && $level eq 'warn') {
-        $message = "$ESCAPE\[31m$message$ESCAPE\[0m";
+    if (my $logger = $self->env->{'psgix.logger'}) {
+        my ($level, $message) = @_;
+
+        $logger->({level => $level, message => $message});
     }
-
-    $self->logger->({level => $level, message => $message});
 }
 
 1;
