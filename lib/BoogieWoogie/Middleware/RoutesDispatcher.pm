@@ -4,21 +4,19 @@ use Boose 'Plack::Middleware';
 use Boose::Loader;
 use Boose::Exception;
 
-use BoogieWoogie::NullLogger;
+use BoogieWoogie::Logger;
 use BoogieWoogie::Request;
 use BoogieWoogie::Util 'camelize';
 
 has 'namespace';
 has 'controller_args' => sub { [] };
 has 'routes';
-has 'log' => sub { BoogieWoogie::NullLogger->new };
+has 'log' => sub { BoogieWoogie::Logger->new };
 
 sub call {
     my ($self, $env) = @_;
 
-    if (my $log = $env->{'psgix.logger'}) {
-        $self->set_log($log);
-    }
+    $self->log->set_env($env);
 
     my $res = $self->_dispatch($env);
     return $res if $res;
@@ -55,6 +53,8 @@ sub _dispatch {
         @{$self->controller_args}
     );
     return unless defined $controller;
+
+    $env->{'boogie_woogie.controller'} = $name;
 
     return $self->_run_controller($controller);
 }
