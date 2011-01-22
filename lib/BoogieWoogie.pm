@@ -1,67 +1,63 @@
 package BoogieWoogie;
+
 use Boose;
 
 use overload q(&{}) => sub { shift->psgi_app }, fallback => 1;
 
-use Scalar::Util 'blessed';
-
-use BoogieWoogie::Util 'decamelize';
-use BoogieWoogie::Request;
-use BoogieWoogie::Response;
-use BoogieWoogie::Home;
-use BoogieWoogie::RoutesDispatcher;
-use BoogieWoogie::Logger;
 use BoogieWoogie::Formats;
-use BoogieWoogie::ConfigLoader;
+use BoogieWoogie::Home;
+use BoogieWoogie::Middleware::AutoRenderer;
+use BoogieWoogie::Middleware::RoutesDispatcher;
+use BoogieWoogie::Renderer;
+use BoogieWoogie::Routes;
+use BoogieWoogie::Util 'decamelize';
 
-has 'config_loader' => sub { BoogieWoogie::ConfigLoader->new };
-
-has 'home'       => sub { BoogieWoogie::Home->new };
-has 'dispatcher' => sub { BoogieWoogie::RoutesDispatcher->new };
-has 'log'        => sub { BoogieWoogie::Logger->new };
-has 'formats'    => sub { BoogieWoogie::Formats->new };
-
-has 'tmpdir' => sub { require File::Spec; File::Spec->tmpdir };
+has 'formats'  => sub { BoogieWoogie::Formats->new };
+has 'renderer' => sub { BoogieWoogie::Renderer->new };
+has 'home'     => sub { BoogieWoogie::Home->new };
+has 'routes'   => sub { BoogieWoogie::Routes->new };
 
 sub new {
     my $self = shift->SUPER::new(@_);
 
     $self->home->detect_root_from_caller(caller);
 
-    $self->setup_config_loader;
-    $self->setup_dispatcher;
+    $self->renderer->set_app($self);
 
-    $self->startup;
+    $self->prepare_app;
 
     return $self;
 }
 
-sub setup_config_loader {
+sub url_for {
     my $self = shift;
+    my $req  = shift;
+    my $name = shift;
+    my %args = @_;
 
-    $self->config_loader->set_home($self->home);
-    $self->config_loader->set_file($self->app_name);
-    $self->config_loader->set_log($self->log);
-}
+    my $query  = delete $args{'?'};
+    my $format = delete $args{format};
 
-sub setup_dispatcher {
-    my $self = shift;
+    my $path = $self->routes->build_path($name, %args);
+    $path .= '.' . $format if defined $format;
 
-    $self->dispatcher->set_app($self);
-    $self->dispatcher->set_log($self->log);
-}
+    my $url = $req->base->clone;
+    $url->path($url->path . $path);
 
-sub config {
-    my $self = shift;
+    if ($query) {
+        $url->query_form(
+              ref $query eq 'ARRAY' ? @$query
+            : ref $query eq 'HASH'  ? %$query
+            : $query
+        );
+    }
 
-    return $self->{config} if $self->{config};
-
-    return $self->{config} = $self->config_loader->load;
+    return $url;
 }
 
 sub app_name { decamelize ref shift }
 
-sub startup { }
+sub prepare_app { }
 
 sub psgi_app {
     my $self = shift;
@@ -72,31 +68,16 @@ sub psgi_app {
 sub _compile_psgi_app {
     my $self = shift;
 
-    my $app = sub {
-        my $env = shift;
+    my $app = sub { };
 
-        my $req = BoogieWoogie::Request->new($env);
+    $app = BoogieWoogie::Middleware::RoutesDispatcher->wrap(
+        $app,
+        routes          => $self->routes,
+        namespace       => ref $self,
+        controller_args => [app => $self]
+    );
 
-        $self->log->set_logger($env->{'psgix.logger'});
-
-        my $output = $self->dispatcher->dispatch($req);
-
-        if (not defined $output) {
-            return [404, ['Content-Type' => 'text/html'], ["404 Not Found"]];
-        }
-        elsif (blessed($output) && $output->isa('BoogieWoogie::Response')) {
-            return $output->finalize;
-        }
-        elsif (ref $output eq 'CODE') {
-            return $output;
-        }
-        else {
-            my $res = BoogieWoogie::Response->new(200);
-            $res->content_type('text/html');
-            $res->body($output);
-            return $res->finalize;
-        }
-    };
+    $app = BoogieWoogie::Middleware::AutoRenderer->wrap($app);
 
     return $app;
 }
