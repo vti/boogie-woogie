@@ -10,6 +10,7 @@ use Test::More;
 use Plack::Test;
 use HTTP::Request::Common;
 
+use BoogieWoogie;
 use BoogieWoogie::Routes;
 use BoogieWoogie::Middleware::RoutesDispatcher;
 
@@ -17,10 +18,7 @@ sub _build_app {
     shift;
     my %args = @_;
 
-    my $app = sub {
-        my $env = shift;
-        return [200, ['Content-Type' => 'text/plain'], ["Hello World"]];
-    };
+    my $app = BoogieWoogie->new;
 
     my $routes = BoogieWoogie::Routes->new;
 
@@ -28,8 +26,13 @@ sub _build_app {
         $routes->add_route(@{$args{routes}});
     }
 
-    return BoogieWoogie::Middleware::RoutesDispatcher->wrap($app,
-        routes => $routes);
+    $app->set_routes($routes);
+
+    return BoogieWoogie::Middleware::RoutesDispatcher->wrap(
+        $app->psgi_app,
+        application => $app,
+        namespace   => ''
+    );
 }
 
 sub dispatch_with_no_routes : Test(1) {
@@ -42,7 +45,7 @@ sub dispatch_with_no_routes : Test(1) {
 
         my $res = $cb->(GET "/");
 
-        like $res->content, qr/Hello World/;
+        like $res->content, qr/404 Not Found/;
     };
 }
 
@@ -57,7 +60,7 @@ sub dispatch_with_controller_not_found : Test(1) {
 
         my $res = $cb->(GET "/");
 
-        like $res->content, qr/Hello World/;
+        like $res->content, qr/404 Not Found/;
     };
 }
 

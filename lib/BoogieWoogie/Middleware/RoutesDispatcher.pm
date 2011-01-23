@@ -1,17 +1,15 @@
 package BoogieWoogie::Middleware::RoutesDispatcher;
 
-use Boose 'Plack::Middleware';
+use Boose 'BoogieWoogie::Middleware';
 use Boose::Loader;
-use Boose::Exception;
 
 use BoogieWoogie::Logger;
 use BoogieWoogie::Request;
 use BoogieWoogie::Util 'camelize';
 
-has 'namespace';
-has 'controller_args' => sub { [] };
-has 'routes';
-has 'log' => sub { BoogieWoogie::Logger->new };
+has namespace => sub { ref shift->application };
+
+sub routes    { shift->application->routes }
 
 sub call {
     my ($self, $env) = @_;
@@ -21,7 +19,7 @@ sub call {
     my $res = $self->_dispatch($env);
     return $res if $res;
 
-    $self->app->($env);
+    return $self->app->($env);
 }
 
 sub _dispatch {
@@ -50,11 +48,9 @@ sub _dispatch {
         match => $match,
         req   => $req,
         res   => $req->new_response,
-        @{$self->controller_args}
+        app   => $self->application
     );
     return unless defined $controller;
-
-    $env->{'boogie_woogie.controller'} = $name;
 
     return $self->_run_controller($controller);
 }
@@ -74,11 +70,9 @@ sub _create_controller {
         $instance = $controller_class->new(name => $name, @args);
     }
     catch {
-        my $class_not_found =
-          Boose::Exception->caught($_ => 'Boose::Exception::ClassNotFound');
 
         # Rethrow exception if it's not about class not being found
-        throw($_) unless $class_not_found;
+        throw($_) unless caught('Boose::Exception::ClassNotFound');
 
         $self->log->warn("Controller '$controller_class' not found");
     };
@@ -99,6 +93,14 @@ sub _run_controller {
     if ($controller->res->status) {
         return $controller->res->finalize;
     }
+
+    # For other middlewares
+    my $env = $controller->req->env;
+    $env->{'boogie_woogie.controller'} = $controller->name;
+
+    my $params = $controller->match;
+    $env->{'boogie_woogie.format'}  = $params->{format};
+    $env->{'boogie_woogie.handler'} = $params->{handler};
 
     return;
 }

@@ -68,16 +68,13 @@ sub psgi_app {
 sub _compile_psgi_app {
     my $self = shift;
 
-    my $app = sub { };
+    my $app = sub {
+        my $env = shift;
 
-    $app = BoogieWoogie::Middleware::RoutesDispatcher->wrap(
-        $app,
-        routes          => $self->routes,
-        namespace       => ref $self,
-        controller_args => [app => $self]
-    );
+        $env->{'boogie_woogie.default'} = 1;
 
-    $app = BoogieWoogie::Middleware::AutoRenderer->wrap($app);
+        return [404, [], ['404 Not Found']];
+    };
 
     return $app;
 }
