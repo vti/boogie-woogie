@@ -15,6 +15,9 @@ sub render {
     my $input = shift;
     my %args  = ref $_[0] eq 'HASH' ? %{$_[0]} : @_;
 
+    my @handlers_names = keys %{$self->{handlers}};
+    throw('No renderer handlers were registered') unless @handlers_names;
+
     my $handler = $args{'-handler'};
 
     if (ref $input eq 'SCALAR') {
@@ -28,21 +31,15 @@ sub render {
 
     $handler = $self->_get_handler($handler);
 
-    #$self->log->debug(qq/Rendering template '$input'/);
-
     my $output;
 
     try {
         $output = $handler->render_file($input, %args);
     }
     catch {
-        my $e = $_;
 
         # Rethrow if it's not about template not being found
-        throw($e)
-          unless Boose::Exception->caught(
-                  $_ => 'BoogieWoogie::Exception::TemplateNotFound'
-          );
+        throw($_) unless caught('BoogieWoogie::X::TemplateNotFound');
     };
 
     return unless defined $output;
@@ -70,6 +67,20 @@ sub register {
     return $self;
 }
 
+sub guess_handler {
+    my $self = shift;
+
+    my $handler = $self->default_handler;
+    return $handler if $handler;
+
+    my @handlers_names = keys %{$self->{handlers}};
+    throw("Can't decide what handler to use from: " . join ' ' =>
+        sort @handlers_names)
+      if @handlers_names > 1;
+
+    return $handlers_names[0];
+}
+
 sub _build_engine_from_handler {
     my $self    = shift;
     my $handler = shift;
@@ -85,18 +96,7 @@ sub _get_handler {
     my $self    = shift;
     my $handler = shift;
 
-    my @handlers_names = keys %{$self->{handlers}};
-    throw('No renderer handlers were registered') unless @handlers_names;
-
-    $handler //= $self->default_handler;
-
-    if (!$handler) {
-        throw("Can't decide what handler to use from: " . join ' ' =>
-            sort @handlers_names)
-          if @handlers_names > 1;
-
-        $handler = shift @handlers_names;
-    }
+    $handler //= $self->guess_handler;
 
     throw("Unknown renderer handler '$handler'")
       unless exists $self->{handlers}->{$handler};

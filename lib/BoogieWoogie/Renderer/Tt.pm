@@ -2,8 +2,8 @@ package BoogieWoogie::Renderer::Tt;
 
 use Boose 'BoogieWoogie::Renderer::Base';
 
-use BoogieWoogie::Exception::TemplateNotFound;
-use BoogieWoogie::Exception::TemplateError;
+use BoogieWoogie::X::TemplateNotFound;
+use BoogieWoogie::X::TemplateError;
 
 use Template;
 
@@ -56,7 +56,6 @@ sub _render {
     my $output = '';
 
     my $ok = $tt->process($template, $vars, \$output, {binmode => ':utf8'});
-
     return $output if $ok;
 
     my $e = $tt->error;
@@ -64,11 +63,11 @@ sub _render {
     $tt->error('');
 
     if ($e =~ m/not found/) {
-        BoogieWoogie::Exception::TemplateNotFound->throw(
+        BoogieWoogie::X::TemplateNotFound->throw(
             template => $template);
     }
 
-    BoogieWoogie::Exception::TemplateError->throw(
+    BoogieWoogie::X::TemplateError->throw(
         template => $template,
         error    => $e
     );

@@ -2,8 +2,8 @@ package BoogieWoogie::Renderer::Caml;
 
 use Boose 'BoogieWoogie::Renderer::Base';
 
-use BoogieWoogie::Exception::TemplateNotFound;
-use BoogieWoogie::Exception::TemplateError;
+use BoogieWoogie::X::TemplateNotFound;
+use BoogieWoogie::X::TemplateError;
 
 use Text::Caml;
 
@@ -42,7 +42,7 @@ sub _render {
     }
     catch {
         if ($_ !~ m/Can't find/) {
-            BoogieWoogie::Exception::TemplateError->throw(
+            BoogieWoogie::X::TemplateError->throw(
                 template => $template,
                 error    => $_
             );
@@ -50,7 +50,7 @@ sub _render {
     };
 
     unless (defined $output) {
-        BoogieWoogie::Exception::TemplateNotFound->throw(
+        BoogieWoogie::X::TemplateNotFound->throw(
             template => $template);
     }
 

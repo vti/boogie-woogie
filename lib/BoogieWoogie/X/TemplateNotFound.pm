@@ -1,4 +1,4 @@
-package BoogieWoogie::Exception::TemplateNotFound;
+package BoogieWoogie::X::TemplateNotFound;
 
 use Boose '::Exception';
 
