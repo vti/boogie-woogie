@@ -102,6 +102,8 @@ sub _run_controller {
     $env->{'boogie_woogie.format'}  = $params->{format};
     $env->{'boogie_woogie.handler'} = $params->{handler};
 
+    $env->{'boogie_woogie.vars'} = $controller->vars;
+
     return;
 }
 

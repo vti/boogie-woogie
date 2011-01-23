@@ -5,10 +5,22 @@ use Boose;
 use BoogieWoogie::Logger;
 use BoogieWoogie::Util qw/camelize slurp/;
 
+has 'vars' => sub { {} };
 has [qw/app req res/] => {weak_ref => 1};
 has 'match';
 has 'name';
 has log => sub { BoogieWoogie::Logger->new(env => shift->req->env) };
+
+sub keep {
+    my $self = shift;
+    my %vars = @_;
+
+    while (my ($key, $value) = each %vars) {
+        $self->vars->{$key} = $value;
+    }
+
+    return $self;
+}
 
 sub param { shift->req->param(@_) }
 
@@ -28,7 +40,7 @@ sub render_text {
 sub render_partial {
     my $self = shift;
 
-    $self->app->renderer->render(@_);
+    return $self->app->renderer->render(@_, vars => $self->vars);
 }
 
 sub render {

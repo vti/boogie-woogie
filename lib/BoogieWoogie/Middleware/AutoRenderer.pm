@@ -39,6 +39,7 @@ sub _render {
     my $format     = $env->{'boogie_woogie.format'} || 'html';
     my $handler    = $env->{'boogie_woogie.handler'}
       || $self->renderer->guess_handler;
+    my $vars = $env->{'boogie_woogie.vars'} || {};
 
     #my $formats = $self->app->formats;
 
@@ -46,7 +47,9 @@ sub _render {
 
     $self->log->debug("Autorendering $template");
 
-    if (defined(my $output = $self->renderer->render($template))) {
+    my $output = $self->renderer->render($template, vars => $vars);
+
+    if (defined $output) {
         $res->status(200);
         $res->body($output);
     }

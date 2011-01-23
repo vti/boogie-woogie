@@ -20,9 +20,11 @@ sub render {
 
     my $handler = $args{'-handler'};
 
+    my $vars = $args{vars} || {};
+
     if (ref $input eq 'SCALAR') {
         $handler = $self->_get_handler($handler);
-        return $handler->render_partial($$input, %args);
+        return $handler->render_partial($$input, $vars);
     }
 
     if (!$handler) {
@@ -34,7 +36,7 @@ sub render {
     my $output;
 
     try {
-        $output = $handler->render_file($input, %args);
+        $output = $handler->render_file($input, $vars);
     }
     catch {
 
